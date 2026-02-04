@@ -61,6 +61,7 @@ export default function HomePage() {
     { href: '#services', label: 'Services' },
     { href: '#equipment', label: 'Equipment' },
     { href: '#contact', label: 'Contact' },
+    { href: '/pay', label: 'Pay Online' },
   ]
 
   const equipment = [
@@ -553,9 +554,9 @@ export default function HomePage() {
             <div className="grid md:grid-cols-2 gap-12">
               <motion.div variants={fadeInUp} className="space-y-8">
                 {[
-                  { icon: Phone, label: 'Phone', value: '(555) 123-4567', href: 'tel:+15551234567' },
+                  { icon: Phone, label: 'Phone', value: 'PHONE_PLACEHOLDER', href: 'tel:PHONE_PLACEHOLDER' },
                   { icon: Mail, label: 'Email', value: 'info@bizzybtumblebus.com', href: 'mailto:info@bizzybtumblebus.com' },
-                  { icon: MapPin, label: 'Service Area', value: 'Greater Metro Area & Surrounding Counties', href: null },
+                  { icon: MapPin, label: 'Service Area', value: 'Flint, TX 75762 & Surrounding Areas', href: null },
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-4">
                     <div className="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center flex-shrink-0">
@@ -676,7 +677,7 @@ export default function HomePage() {
               <h4 className="font-bold mb-4 text-lg">Contact</h4>
               <ul className="space-y-3 text-slate-400">
                 <li className="flex items-center gap-2">
-                  <Phone className="w-4 h-4" /> (555) 123-4567
+                  <Phone className="w-4 h-4" /> PHONE_PLACEHOLDER
                 </li>
                 <li className="flex items-center gap-2">
                   <Mail className="w-4 h-4" /> info@bizzybtumblebus.com
