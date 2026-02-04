@@ -5,66 +5,181 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { BizzyBee } from '@/components/icons'
 import { 
   ArrowLeft, ArrowRight, Check, Loader2,
-  Baby, Users, Phone, AlertCircle, Target, FileText,
-  PartyPopper, Home
+  Baby, Users, Phone, CreditCard, FileText,
+  Home, DollarSign, Shirt, School, UserPlus
 } from 'lucide-react'
+
+const SHIRT_SIZES = ['Youth XS', 'Youth S', 'Youth M', 'Youth L', 'Adult S', 'Adult M', 'Adult L', 'Adult XL']
+
+const PRICING_PLANS = [
+  {
+    id: 'plan_a',
+    name: 'Plan A - Monthly Auto Charge',
+    price: '$50/month',
+    description: '4 classes per month with automatic monthly billing',
+    features: ['4 classes per month', 'Auto-charged monthly', '2nd child half price ($25)'],
+    stripePrice: 5000, // cents
+  },
+  {
+    id: 'plan_b',
+    name: 'Plan B - Pay in Full',
+    price: 'Call for pricing',
+    description: 'Pay for the full session upfront',
+    features: ['Full session payment', '2nd child half price', 'Call office for amount'],
+    stripePrice: null, // Requires call
+  },
+  {
+    id: 'plan_c',
+    name: 'Plan C - Monthly Payment',
+    price: '$50/month',
+    description: '4 classes with flexible payment options',
+    features: ['4 classes per month', 'Pay by card, check, or cash', 'Due 1st class of each 4-week period'],
+    stripePrice: 5000,
+  },
+]
+
+interface ChildInfo {
+  firstName: string
+  lastName: string
+  dateOfBirth: string
+  age: string
+  school: string
+  shirtSize: string
+  canHaveGummyBears: boolean
+}
 
 export default function EnrollmentPage() {
   const [formData, setFormData] = useState({
-    studentFirstName: '',
-    studentLastName: '',
-    dateOfBirth: '',
+    // Parent Info
     parentFirstName: '',
     parentLastName: '',
     email: '',
     phone: '',
     address: '',
     city: '',
-    state: '',
+    state: 'AR',
     zipCode: '',
+    
+    // Primary Child
+    child1: {
+      firstName: '',
+      lastName: '',
+      dateOfBirth: '',
+      age: '',
+      school: '',
+      shirtSize: '',
+      canHaveGummyBears: true,
+    } as ChildInfo,
+    
+    // Second Child (optional)
+    hasSecondChild: false,
+    child2: {
+      firstName: '',
+      lastName: '',
+      dateOfBirth: '',
+      age: '',
+      school: '',
+      shirtSize: '',
+      canHaveGummyBears: true,
+    } as ChildInfo,
+    
+    // Plan Selection
+    selectedPlan: '',
+    
+    // Emergency Contact
     emergencyContactName: '',
     emergencyContactPhone: '',
     emergencyRelation: '',
-    programType: '',
-    classLevel: '',
-    preferredSchedule: '',
+    
+    // Medical Info
     medicalConditions: '',
     allergies: '',
-    specialNeeds: '',
+    
+    // Permissions
+    permissionAgreed: false,
+    
+    // Notes
+    notes: '',
     referralSource: '',
-    notes: ''
   })
 
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const [showPayment, setShowPayment] = useState(false)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value })
+    const { name, value, type } = e.target
+    const checked = (e.target as HTMLInputElement).checked
+    
+    if (name.startsWith('child1.') || name.startsWith('child2.')) {
+      const [child, field] = name.split('.')
+      setFormData(prev => ({
+        ...prev,
+        [child]: {
+          ...prev[child as 'child1' | 'child2'],
+          [field]: type === 'checkbox' ? checked : value
+        }
+      }))
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: type === 'checkbox' ? checked : value
+      }))
+    }
+  }
+
+  const calculateTotal = () => {
+    const plan = PRICING_PLANS.find(p => p.id === formData.selectedPlan)
+    if (!plan || !plan.stripePrice) return null
+    
+    let total = plan.stripePrice
+    if (formData.hasSecondChild) {
+      total += plan.stripePrice / 2 // 2nd child half price
+    }
+    return total
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    if (!formData.permissionAgreed) {
+      alert('Please agree to the permission and release statement to continue.')
+      return
+    }
+    
     setSubmitting(true)
     
-    // Simulate submission delay
+    // Simulate submission
     await new Promise(resolve => setTimeout(resolve, 1500))
     
-    // In production, you could:
-    // 1. Send to an email service (SendGrid, Resend, etc.)
-    // 2. Send to a form service (Formspree, Basin, etc.)
-    // 3. Post to a Google Form/Sheet
-    // 4. Send to a webhook
+    const plan = PRICING_PLANS.find(p => p.id === formData.selectedPlan)
     
+    // If plan has stripe price and isn't "call for pricing", show payment
+    if (plan?.stripePrice) {
+      setShowPayment(true)
+      setSubmitting(false)
+    } else {
+      // Plan B - call for pricing
+      setSubmitted(true)
+      setSubmitting(false)
+    }
+  }
+
+  const handlePayment = async () => {
+    setSubmitting(true)
+    // In production, this would create a Stripe checkout session
+    // For now, simulate successful payment
+    await new Promise(resolve => setTimeout(resolve, 2000))
     setSubmitted(true)
     setSubmitting(false)
   }
 
   const enrollmentNumber = Math.floor(Math.random() * 9000) + 1000
 
+  // Success Screen
   if (submitted) {
     return (
       <div className="min-h-screen gradient-hero flex items-center justify-center p-4">
@@ -105,25 +220,6 @@ export default function EnrollmentPage() {
                     Back to Home
                   </Button>
                 </Link>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setSubmitted(false)
-                    setFormData({
-                      studentFirstName: '', studentLastName: '', dateOfBirth: '',
-                      parentFirstName: '', parentLastName: '', email: '', phone: '',
-                      address: '', city: '', state: '', zipCode: '',
-                      emergencyContactName: '', emergencyContactPhone: '', emergencyRelation: '',
-                      programType: '', classLevel: '', preferredSchedule: '',
-                      medicalConditions: '', allergies: '', specialNeeds: '',
-                      referralSource: '', notes: ''
-                    })
-                  }}
-                  className="w-full rounded-full h-12 border-2"
-                >
-                  <PartyPopper className="w-4 h-4 mr-2" />
-                  Enroll Another Child
-                </Button>
               </div>
             </CardContent>
           </Card>
@@ -132,14 +228,94 @@ export default function EnrollmentPage() {
     )
   }
 
-  const sections = [
-    { icon: Baby, title: 'Child Information', color: 'bg-pink-500' },
-    { icon: Users, title: 'Parent/Guardian', color: 'bg-blue-500' },
-    { icon: AlertCircle, title: 'Emergency Contact', color: 'bg-red-500' },
-    { icon: Target, title: 'Program Selection', color: 'bg-emerald-500' },
-    { icon: FileText, title: 'Medical & Notes', color: 'bg-purple-500' },
-  ]
+  // Payment Screen
+  if (showPayment) {
+    const total = calculateTotal()
+    const plan = PRICING_PLANS.find(p => p.id === formData.selectedPlan)
+    
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="max-w-md w-full"
+        >
+          <Card className="border-0 shadow-2xl">
+            <CardContent className="p-8">
+              <div className="text-center mb-8">
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CreditCard className="w-8 h-8 text-primary" />
+                </div>
+                <h2 className="text-2xl font-bold text-slate-900 mb-2">Complete Payment</h2>
+                <p className="text-slate-600">{plan?.name}</p>
+              </div>
+              
+              <div className="bg-slate-100 rounded-xl p-4 mb-6">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-slate-600">First Child</span>
+                  <span className="font-semibold">${(plan?.stripePrice || 0) / 100}</span>
+                </div>
+                {formData.hasSecondChild && (
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-slate-600">Second Child (50% off)</span>
+                    <span className="font-semibold">${((plan?.stripePrice || 0) / 100) / 2}</span>
+                  </div>
+                )}
+                <div className="border-t border-slate-300 pt-2 mt-2">
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold text-slate-900">Total</span>
+                    <span className="font-bold text-2xl text-primary">${(total || 0) / 100}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                <Button
+                  onClick={handlePayment}
+                  disabled={submitting}
+                  className="w-full bg-primary hover:bg-primary/90 text-slate-900 font-bold rounded-full h-14 text-lg"
+                >
+                  {submitting ? (
+                    <>
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="w-5 h-5 mr-2" />
+                      Pay with Card
+                    </>
+                  )}
+                </Button>
+                
+                <p className="text-center text-xs text-slate-500">
+                  Secure payment powered by Stripe
+                </p>
+                
+                <Button
+                  variant="ghost"
+                  onClick={() => setShowPayment(false)}
+                  className="w-full"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back to Form
+                </Button>
+              </div>
+              
+              <div className="mt-6 p-4 bg-amber-50 rounded-xl border border-amber-200">
+                <p className="text-sm text-amber-800">
+                  <strong>Payment Policy:</strong> Payments are due the 1st class of each 4-week period. 
+                  A $5 late fee will be added after the first week. $25 fee for returned checks.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
+    )
+  }
 
+  // Main Form
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Header */}
@@ -188,49 +364,67 @@ export default function EnrollmentPage() {
               </div>
 
               <form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-8">
-                {/* Child Information */}
+                
+                {/* Pricing Plans */}
                 <section>
                   <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 bg-pink-500 rounded-xl flex items-center justify-center">
-                      <Baby className="w-5 h-5 text-white" />
+                    <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center">
+                      <DollarSign className="w-5 h-5 text-white" />
                     </div>
-                    <h3 className="text-lg font-bold text-slate-900">Child Information</h3>
+                    <h3 className="text-lg font-bold text-slate-900">Select Your Plan *</h3>
                   </div>
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="label">Child's First Name *</label>
-                      <input
-                        type="text"
-                        name="studentFirstName"
-                        value={formData.studentFirstName}
-                        onChange={handleChange}
-                        required
-                        className="input-field"
-                        placeholder="First name"
-                      />
-                    </div>
-                    <div>
-                      <label className="label">Child's Last Name *</label>
-                      <input
-                        type="text"
-                        name="studentLastName"
-                        value={formData.studentLastName}
-                        onChange={handleChange}
-                        required
-                        className="input-field"
-                        placeholder="Last name"
-                      />
-                    </div>
-                    <div>
-                      <label className="label">Date of Birth</label>
-                      <input
-                        type="date"
-                        name="dateOfBirth"
-                        value={formData.dateOfBirth}
-                        onChange={handleChange}
-                        className="input-field"
-                      />
-                    </div>
+                  
+                  <div className="grid gap-4">
+                    {PRICING_PLANS.map((plan) => (
+                      <label
+                        key={plan.id}
+                        className={`relative flex cursor-pointer rounded-xl border-2 p-4 transition-all ${
+                          formData.selectedPlan === plan.id
+                            ? 'border-primary bg-primary/5'
+                            : 'border-slate-200 hover:border-slate-300'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="selectedPlan"
+                          value={plan.id}
+                          checked={formData.selectedPlan === plan.id}
+                          onChange={handleChange}
+                          className="sr-only"
+                          required
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-bold text-slate-900">{plan.name}</span>
+                            <span className="font-bold text-primary">{plan.price}</span>
+                          </div>
+                          <p className="text-sm text-slate-600 mb-2">{plan.description}</p>
+                          <ul className="text-xs text-slate-500 space-y-1">
+                            {plan.features.map((feature, i) => (
+                              <li key={i} className="flex items-center gap-2">
+                                <Check className="w-3 h-3 text-emerald-500" />
+                                {feature}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                        <div className={`ml-4 w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                          formData.selectedPlan === plan.id
+                            ? 'border-primary bg-primary'
+                            : 'border-slate-300'
+                        }`}>
+                          {formData.selectedPlan === plan.id && (
+                            <Check className="w-3 h-3 text-white" />
+                          )}
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                  
+                  <div className="mt-4 p-4 bg-slate-100 rounded-xl text-sm text-slate-600">
+                    <strong>Payment Options:</strong> Credit card, debit card, personal check, or cash. 
+                    Payments due the 1st class of each 4-week period. $5 late fee after the first week. 
+                    $25 fee for returned checks.
                   </div>
                 </section>
 
@@ -244,7 +438,7 @@ export default function EnrollmentPage() {
                   </div>
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="label">Parent First Name *</label>
+                      <label className="label">First Name *</label>
                       <input
                         type="text"
                         name="parentFirstName"
@@ -252,11 +446,11 @@ export default function EnrollmentPage() {
                         onChange={handleChange}
                         required
                         className="input-field"
-                        placeholder="Parent's first name"
+                        placeholder="First name"
                       />
                     </div>
                     <div>
-                      <label className="label">Parent Last Name *</label>
+                      <label className="label">Last Name *</label>
                       <input
                         type="text"
                         name="parentLastName"
@@ -264,7 +458,7 @@ export default function EnrollmentPage() {
                         onChange={handleChange}
                         required
                         className="input-field"
-                        placeholder="Parent's last name"
+                        placeholder="Last name"
                       />
                     </div>
                     <div>
@@ -288,7 +482,7 @@ export default function EnrollmentPage() {
                         onChange={handleChange}
                         required
                         className="input-field"
-                        placeholder="(555) 123-4567"
+                        placeholder="(479) 555-1234"
                       />
                     </div>
                   </div>
@@ -303,7 +497,7 @@ export default function EnrollmentPage() {
                       placeholder="123 Main Street"
                     />
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4">
                     <div className="col-span-2 sm:col-span-1">
                       <label className="label">City</label>
                       <input
@@ -323,7 +517,7 @@ export default function EnrollmentPage() {
                         value={formData.state}
                         onChange={handleChange}
                         className="input-field"
-                        placeholder="State"
+                        placeholder="AR"
                       />
                     </div>
                     <div>
@@ -334,10 +528,232 @@ export default function EnrollmentPage() {
                         value={formData.zipCode}
                         onChange={handleChange}
                         className="input-field"
-                        placeholder="12345"
+                        placeholder="72712"
                       />
                     </div>
                   </div>
+                </section>
+
+                {/* Child 1 Information */}
+                <section>
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 bg-pink-500 rounded-xl flex items-center justify-center">
+                      <Baby className="w-5 h-5 text-white" />
+                    </div>
+                    <h3 className="text-lg font-bold text-slate-900">Child Information</h3>
+                  </div>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="label">Child's First Name *</label>
+                      <input
+                        type="text"
+                        name="child1.firstName"
+                        value={formData.child1.firstName}
+                        onChange={handleChange}
+                        required
+                        className="input-field"
+                        placeholder="First name"
+                      />
+                    </div>
+                    <div>
+                      <label className="label">Child's Last Name *</label>
+                      <input
+                        type="text"
+                        name="child1.lastName"
+                        value={formData.child1.lastName}
+                        onChange={handleChange}
+                        required
+                        className="input-field"
+                        placeholder="Last name"
+                      />
+                    </div>
+                    <div>
+                      <label className="label">Date of Birth *</label>
+                      <input
+                        type="date"
+                        name="child1.dateOfBirth"
+                        value={formData.child1.dateOfBirth}
+                        onChange={handleChange}
+                        required
+                        className="input-field"
+                      />
+                    </div>
+                    <div>
+                      <label className="label">Age *</label>
+                      <input
+                        type="number"
+                        name="child1.age"
+                        value={formData.child1.age}
+                        onChange={handleChange}
+                        required
+                        min="2"
+                        max="12"
+                        className="input-field"
+                        placeholder="Age"
+                      />
+                    </div>
+                    <div>
+                      <label className="label">School/Daycare *</label>
+                      <input
+                        type="text"
+                        name="child1.school"
+                        value={formData.child1.school}
+                        onChange={handleChange}
+                        required
+                        className="input-field"
+                        placeholder="School or daycare name"
+                      />
+                    </div>
+                    <div>
+                      <label className="label">Shirt Size *</label>
+                      <select
+                        name="child1.shirtSize"
+                        value={formData.child1.shirtSize}
+                        onChange={handleChange}
+                        required
+                        className="input-field"
+                      >
+                        <option value="">Select size...</option>
+                        {SHIRT_SIZES.map(size => (
+                          <option key={size} value={size}>{size}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-4">
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        name="child1.canHaveGummyBears"
+                        checked={formData.child1.canHaveGummyBears}
+                        onChange={handleChange}
+                        className="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary"
+                      />
+                      <span className="text-slate-700">My child can have gummy bears 🐻</span>
+                    </label>
+                  </div>
+                </section>
+
+                {/* Second Child Toggle */}
+                <section>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 bg-purple-500 rounded-xl flex items-center justify-center">
+                      <UserPlus className="w-5 h-5 text-white" />
+                    </div>
+                    <h3 className="text-lg font-bold text-slate-900">Second Child (Half Price)</h3>
+                  </div>
+                  
+                  <label className="flex items-center gap-3 cursor-pointer p-4 bg-slate-100 rounded-xl">
+                    <input
+                      type="checkbox"
+                      name="hasSecondChild"
+                      checked={formData.hasSecondChild}
+                      onChange={handleChange}
+                      className="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary"
+                    />
+                    <span className="text-slate-700 font-medium">I want to enroll a second child (50% discount)</span>
+                  </label>
+                  
+                  {formData.hasSecondChild && (
+                    <motion.div 
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      className="mt-4 p-4 bg-purple-50 rounded-xl border border-purple-200"
+                    >
+                      <div className="grid sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="label">Child's First Name *</label>
+                          <input
+                            type="text"
+                            name="child2.firstName"
+                            value={formData.child2.firstName}
+                            onChange={handleChange}
+                            required={formData.hasSecondChild}
+                            className="input-field"
+                            placeholder="First name"
+                          />
+                        </div>
+                        <div>
+                          <label className="label">Child's Last Name *</label>
+                          <input
+                            type="text"
+                            name="child2.lastName"
+                            value={formData.child2.lastName}
+                            onChange={handleChange}
+                            required={formData.hasSecondChild}
+                            className="input-field"
+                            placeholder="Last name"
+                          />
+                        </div>
+                        <div>
+                          <label className="label">Date of Birth *</label>
+                          <input
+                            type="date"
+                            name="child2.dateOfBirth"
+                            value={formData.child2.dateOfBirth}
+                            onChange={handleChange}
+                            required={formData.hasSecondChild}
+                            className="input-field"
+                          />
+                        </div>
+                        <div>
+                          <label className="label">Age *</label>
+                          <input
+                            type="number"
+                            name="child2.age"
+                            value={formData.child2.age}
+                            onChange={handleChange}
+                            required={formData.hasSecondChild}
+                            min="2"
+                            max="12"
+                            className="input-field"
+                            placeholder="Age"
+                          />
+                        </div>
+                        <div>
+                          <label className="label">School/Daycare *</label>
+                          <input
+                            type="text"
+                            name="child2.school"
+                            value={formData.child2.school}
+                            onChange={handleChange}
+                            required={formData.hasSecondChild}
+                            className="input-field"
+                            placeholder="School or daycare name"
+                          />
+                        </div>
+                        <div>
+                          <label className="label">Shirt Size *</label>
+                          <select
+                            name="child2.shirtSize"
+                            value={formData.child2.shirtSize}
+                            onChange={handleChange}
+                            required={formData.hasSecondChild}
+                            className="input-field"
+                          >
+                            <option value="">Select size...</option>
+                            {SHIRT_SIZES.map(size => (
+                              <option key={size} value={size}>{size}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                      
+                      <div className="mt-4">
+                        <label className="flex items-center gap-3 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            name="child2.canHaveGummyBears"
+                            checked={formData.child2.canHaveGummyBears}
+                            onChange={handleChange}
+                            className="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary"
+                          />
+                          <span className="text-slate-700">My child can have gummy bears 🐻</span>
+                        </label>
+                      </div>
+                    </motion.div>
+                  )}
                 </section>
 
                 {/* Emergency Contact */}
@@ -350,34 +766,37 @@ export default function EnrollmentPage() {
                   </div>
                   <div className="grid sm:grid-cols-3 gap-4">
                     <div>
-                      <label className="label">Contact Name</label>
+                      <label className="label">Contact Name *</label>
                       <input
                         type="text"
                         name="emergencyContactName"
                         value={formData.emergencyContactName}
                         onChange={handleChange}
+                        required
                         className="input-field"
                         placeholder="Emergency contact"
                       />
                     </div>
                     <div>
-                      <label className="label">Contact Phone</label>
+                      <label className="label">Contact Phone *</label>
                       <input
                         type="tel"
                         name="emergencyContactPhone"
                         value={formData.emergencyContactPhone}
                         onChange={handleChange}
+                        required
                         className="input-field"
-                        placeholder="(555) 123-4567"
+                        placeholder="(479) 555-1234"
                       />
                     </div>
                     <div>
-                      <label className="label">Relationship</label>
+                      <label className="label">Relationship *</label>
                       <input
                         type="text"
                         name="emergencyRelation"
                         value={formData.emergencyRelation}
                         onChange={handleChange}
+                        required
                         className="input-field"
                         placeholder="e.g., Grandmother"
                       />
@@ -385,73 +804,13 @@ export default function EnrollmentPage() {
                   </div>
                 </section>
 
-                {/* Program Selection */}
+                {/* Medical Info */}
                 <section>
                   <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center">
-                      <Target className="w-5 h-5 text-white" />
-                    </div>
-                    <h3 className="text-lg font-bold text-slate-900">Program Selection</h3>
-                  </div>
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="label">Program Type *</label>
-                      <select
-                        name="programType"
-                        value={formData.programType}
-                        onChange={handleChange}
-                        required
-                        className="input-field"
-                      >
-                        <option value="">Select a program...</option>
-                        <option value="Weekly Program - Daycare">Weekly Program - Daycare</option>
-                        <option value="Weekly Program - School">Weekly Program - School</option>
-                        <option value="Birthday Party">Birthday Party</option>
-                        <option value="Special Event">Special Event</option>
-                        <option value="Summer Camp">Summer Camp</option>
-                        <option value="Other">Other</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="label">Child's Age Group</label>
-                      <select
-                        name="classLevel"
-                        value={formData.classLevel}
-                        onChange={handleChange}
-                        className="input-field"
-                      >
-                        <option value="">Select age group...</option>
-                        <option value="Toddler (2-3 years)">Toddler (2-3 years)</option>
-                        <option value="Preschool (3-5 years)">Preschool (3-5 years)</option>
-                        <option value="School Age (5-8 years)">School Age (5-8 years)</option>
-                        <option value="Big Kids (8-10 years)">Big Kids (8-10 years)</option>
-                      </select>
-                    </div>
-                    <div className="sm:col-span-2">
-                      <label className="label">Preferred Schedule</label>
-                      <select
-                        name="preferredSchedule"
-                        value={formData.preferredSchedule}
-                        onChange={handleChange}
-                        className="input-field"
-                      >
-                        <option value="">Select preferred time...</option>
-                        <option value="Morning (8am-12pm)">Morning (8am-12pm)</option>
-                        <option value="Afternoon (12pm-4pm)">Afternoon (12pm-4pm)</option>
-                        <option value="Weekend">Weekend</option>
-                        <option value="Flexible">Flexible / No preference</option>
-                      </select>
-                    </div>
-                  </div>
-                </section>
-
-                {/* Medical Information & Notes */}
-                <section>
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 bg-purple-500 rounded-xl flex items-center justify-center">
+                    <div className="w-10 h-10 bg-cyan-500 rounded-xl flex items-center justify-center">
                       <FileText className="w-5 h-5 text-white" />
                     </div>
-                    <h3 className="text-lg font-bold text-slate-900">Medical Information & Notes</h3>
+                    <h3 className="text-lg font-bold text-slate-900">Medical Information</h3>
                   </div>
                   <div className="space-y-4">
                     <div>
@@ -462,7 +821,7 @@ export default function EnrollmentPage() {
                         onChange={handleChange}
                         rows={2}
                         className="input-field resize-none"
-                        placeholder="Please list any medical conditions (asthma, seizures, etc.)..."
+                        placeholder="Please list any medical conditions..."
                       />
                     </div>
                     <div>
@@ -476,17 +835,49 @@ export default function EnrollmentPage() {
                         placeholder="Please list any allergies..."
                       />
                     </div>
-                    <div>
-                      <label className="label">Special Needs or Accommodations</label>
-                      <textarea
-                        name="specialNeeds"
-                        value={formData.specialNeeds}
-                        onChange={handleChange}
-                        rows={2}
-                        className="input-field resize-none"
-                        placeholder="Any special needs we should be aware of..."
-                      />
+                  </div>
+                </section>
+
+                {/* Permission & Release */}
+                <section>
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center">
+                      <FileText className="w-5 h-5 text-white" />
                     </div>
+                    <h3 className="text-lg font-bold text-slate-900">Permission & Release *</h3>
+                  </div>
+                  
+                  <div className="p-4 bg-amber-50 rounded-xl border border-amber-200">
+                    <label className="flex items-start gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        name="permissionAgreed"
+                        checked={formData.permissionAgreed}
+                        onChange={handleChange}
+                        required
+                        className="w-5 h-5 mt-1 rounded border-slate-300 text-primary focus:ring-primary"
+                      />
+                      <span className="text-sm text-slate-700 leading-relaxed">
+                        By checking this box, I give my permission for my child to leave the daycare center, 
+                        without an employee of the daycare center, in the hands of the TUMBLEBUS employee. 
+                        I release TUMBLEBUS, their officers, instructors, and the daycare center from all 
+                        responsibilities and all claims for injuries while participating in gymnastics and 
+                        its related activities. I understand that my child's picture may be used in 
+                        promotional materials. <strong>No names will be used.</strong>
+                      </span>
+                    </label>
+                  </div>
+                </section>
+
+                {/* Additional Info */}
+                <section>
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 bg-slate-500 rounded-xl flex items-center justify-center">
+                      <FileText className="w-5 h-5 text-white" />
+                    </div>
+                    <h3 className="text-lg font-bold text-slate-900">Additional Information</h3>
+                  </div>
+                  <div className="space-y-4">
                     <div>
                       <label className="label">How did you hear about us?</label>
                       <select
@@ -499,7 +890,6 @@ export default function EnrollmentPage() {
                         <option value="Friend/Family">Friend or Family</option>
                         <option value="Social Media">Social Media (Facebook, Instagram)</option>
                         <option value="Google Search">Google Search</option>
-                        <option value="Flyer/Poster">Flyer or Poster</option>
                         <option value="School/Daycare">School or Daycare</option>
                         <option value="Saw the Bus">Saw the Tumblebus!</option>
                         <option value="Other">Other</option>
@@ -523,23 +913,23 @@ export default function EnrollmentPage() {
                 <div className="pt-6 border-t border-slate-200">
                   <Button
                     type="submit"
-                    disabled={submitting}
-                    className="w-full bg-primary hover:bg-primary/90 text-slate-900 font-bold rounded-full h-14 text-lg shadow-lg shadow-primary/25"
+                    disabled={submitting || !formData.permissionAgreed}
+                    className="w-full bg-primary hover:bg-primary/90 text-slate-900 font-bold rounded-full h-14 text-lg shadow-lg shadow-primary/25 disabled:opacity-50"
                   >
                     {submitting ? (
                       <>
                         <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                        Submitting...
+                        Processing...
                       </>
                     ) : (
                       <>
-                        Submit Enrollment
+                        Continue to Payment
                         <ArrowRight className="w-5 h-5 ml-2" />
                       </>
                     )}
                   </Button>
                   <p className="text-center text-sm text-slate-500 mt-4">
-                    By submitting, you agree to be contacted about your enrollment.
+                    You'll be able to review your order before payment.
                   </p>
                 </div>
               </form>
