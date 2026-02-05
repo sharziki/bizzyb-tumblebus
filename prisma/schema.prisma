@@ -1,0 +1,40 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Enrollment {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  parentName    String
+  phone         String
+  package       String
+  amount        Int
+  status        String   @default("pending") // active, pending, inactive
+  enrolledDate  DateTime @default(now())
+  lastPayment   DateTime?
+  isNew         Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  children      Child[]
+
+  @@map("enrollments")
+}
+
+model Child {
+  id           String     @id @default(cuid())
+  name         String
+  age          Int
+  school       String
+  shirtSize    String
+  gummyBears   Boolean    @default(true)
+  
+  enrollmentId String
+  enrollment   Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+
+  @@map("children")
+}

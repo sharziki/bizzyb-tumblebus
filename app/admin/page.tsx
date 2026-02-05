@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
@@ -10,7 +10,7 @@ import { BizzyBee } from '@/components/icons'
 import { 
   ArrowLeft, Users, DollarSign, Calendar, Search, X,
   CheckCircle, Clock, XCircle, Mail, Phone, Baby,
-  ChevronRight, Sparkles, Edit2, Save
+  ChevronRight, Sparkles, Edit2, Save, Loader2
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -52,82 +52,6 @@ function getDaysUntilDue(lastPayment: string | null): number | null {
   return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
 }
 
-// Mock enrollment data - organized by email (primary key)
-const INITIAL_ENROLLMENTS = [
-  {
-    email: 'sarah.johnson@email.com',
-    parentName: 'Sarah Johnson',
-    phone: '(903) 555-1234',
-    children: [
-      { name: 'Emma Johnson', age: 5, school: 'Bright Start Daycare', shirtSize: 'Youth S', gummyBears: true },
-    ],
-    package: '1 Child + Registration',
-    amount: 70,
-    status: 'active',
-    enrolledDate: '2026-02-01',
-    lastPayment: '2026-02-01',
-    isNew: true,
-  },
-  {
-    email: 'mike.thompson@email.com',
-    parentName: 'Mike Thompson',
-    phone: '(903) 555-5678',
-    children: [
-      { name: 'Liam Thompson', age: 4, school: 'Little Stars Preschool', shirtSize: 'Youth XS', gummyBears: true },
-      { name: 'Sophia Thompson', age: 7, school: 'Little Stars Preschool', shirtSize: 'Youth M', gummyBears: false },
-    ],
-    package: '2 Children + Registration',
-    amount: 115,
-    status: 'active',
-    enrolledDate: '2026-01-20',
-    lastPayment: '2026-01-05',
-    isNew: false,
-  },
-  {
-    email: 'jenn.davis@email.com',
-    parentName: 'Jennifer Davis',
-    phone: '(903) 555-9012',
-    children: [
-      { name: 'Oliver Davis', age: 6, school: 'Sunshine Academy', shirtSize: 'Youth S', gummyBears: false },
-    ],
-    package: '1 Child (Returning)',
-    amount: 50,
-    status: 'pending',
-    enrolledDate: '2026-02-04',
-    lastPayment: null,
-    isNew: true,
-  },
-  {
-    email: 'amanda.wilson@email.com',
-    parentName: 'Amanda Wilson',
-    phone: '(903) 555-3456',
-    children: [
-      { name: 'Ava Wilson', age: 3, school: 'Tiny Tots Daycare', shirtSize: 'Youth XS', gummyBears: true },
-    ],
-    package: '1 Child + Registration',
-    amount: 70,
-    status: 'active',
-    enrolledDate: '2026-02-03',
-    lastPayment: '2026-02-03',
-    isNew: true,
-  },
-  {
-    email: 'robert.chen@email.com',
-    parentName: 'Robert Chen',
-    phone: '(903) 555-7890',
-    children: [
-      { name: 'Lily Chen', age: 5, school: 'Happy Kids Academy', shirtSize: 'Youth S', gummyBears: true },
-      { name: 'Max Chen', age: 8, school: 'Happy Kids Academy', shirtSize: 'Youth M', gummyBears: true },
-    ],
-    package: '2 Children (Returning)',
-    amount: 75,
-    status: 'inactive',
-    enrolledDate: '2026-01-15',
-    lastPayment: '2026-01-15',
-    isNew: false,
-  },
-]
-
 const statusConfig = {
   active: { 
     label: 'Active', 
@@ -146,15 +70,56 @@ const statusConfig = {
   },
 }
 
-type Enrollment = typeof INITIAL_ENROLLMENTS[0]
+type Child = {
+  id: string
+  name: string
+  age: number
+  school: string
+  shirtSize: string
+  gummyBears: boolean
+}
+
+type Enrollment = {
+  id: string
+  email: string
+  parentName: string
+  phone: string
+  package: string
+  amount: number
+  status: string
+  enrolledDate: string
+  lastPayment: string | null
+  isNew: boolean
+  children: Child[]
+}
 
 export default function AdminPage() {
-  const [enrollments, setEnrollments] = useState(INITIAL_ENROLLMENTS)
+  const [enrollments, setEnrollments] = useState<Enrollment[]>([])
+  const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'pending' | 'inactive'>('all')
   const [selectedEnrollment, setSelectedEnrollment] = useState<Enrollment | null>(null)
   const [isEditing, setIsEditing] = useState(false)
   const [editForm, setEditForm] = useState<Enrollment | null>(null)
+  const [saving, setSaving] = useState(false)
+
+  // Fetch enrollments on mount
+  useEffect(() => {
+    fetchEnrollments()
+  }, [])
+
+  const fetchEnrollments = async () => {
+    try {
+      const res = await fetch('/api/enrollments')
+      if (!res.ok) throw new Error('Failed to fetch')
+      const data = await res.json()
+      setEnrollments(data)
+    } catch (error) {
+      console.error('Failed to fetch enrollments:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   // Get effective status (overdue = inactive)
   const getEffectiveStatus = (enrollment: Enrollment) => {
@@ -205,13 +170,32 @@ export default function AdminPage() {
     setIsEditing(false)
   }
 
-  const saveChanges = () => {
-    if (!editForm) return
-    setEnrollments(prev => prev.map(e => 
-      e.email === selectedEnrollment?.email ? editForm : e
-    ))
-    setSelectedEnrollment(editForm)
-    setIsEditing(false)
+  const saveChanges = async () => {
+    if (!editForm || !selectedEnrollment) return
+    
+    setSaving(true)
+    try {
+      const res = await fetch(`/api/enrollments/${selectedEnrollment.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editForm),
+      })
+      
+      if (!res.ok) throw new Error('Failed to save')
+      
+      const updated = await res.json()
+      
+      setEnrollments(prev => prev.map(e => 
+        e.id === selectedEnrollment.id ? updated : e
+      ))
+      setSelectedEnrollment(updated)
+      setIsEditing(false)
+    } catch (error) {
+      console.error('Failed to save:', error)
+      alert('Failed to save changes')
+    } finally {
+      setSaving(false)
+    }
   }
 
   const generateReminderEmail = (enrollment: Enrollment) => {
@@ -225,6 +209,17 @@ export default function AdminPage() {
       `Thank you!\nBizzy B's Tumblebus`
     )
     return `mailto:${enrollment.email}?subject=${subject}&body=${body}`
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-amber-500 mx-auto mb-4" />
+          <p className="text-slate-600">Loading enrollments...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -395,7 +390,7 @@ export default function AdminPage() {
             
             return (
               <motion.div
-                key={enrollment.email}
+                key={enrollment.id}
                 layout
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -521,9 +516,14 @@ export default function AdminPage() {
                     <Button 
                       size="sm"
                       onClick={saveChanges}
+                      disabled={saving}
                       className="bg-emerald-500 hover:bg-emerald-600"
                     >
-                      <Save className="w-4 h-4 mr-1" />
+                      {saving ? (
+                        <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                      ) : (
+                        <Save className="w-4 h-4 mr-1" />
+                      )}
                       Save
                     </Button>
                   )}
@@ -592,7 +592,7 @@ export default function AdminPage() {
                   </p>
                   <div className="space-y-2">
                     {(isEditing ? editForm?.children : selectedEnrollment.children)?.map((child, i) => (
-                      <div key={i} className="p-3 bg-slate-50 rounded-xl">
+                      <div key={child.id || i} className="p-3 bg-slate-50 rounded-xl">
                         {isEditing ? (
                           <div className="space-y-2">
                             <input
