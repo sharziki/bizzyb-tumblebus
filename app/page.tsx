@@ -273,7 +273,7 @@ export default function HomePage() {
               <div className="relative">
                 {/* Main card */}
                 <div className="bg-white rounded-3xl shadow-2xl shadow-amber-500/10 p-6 md:p-8">
-                  <Tumblebus className="w-full h-auto" />
+                  <Tumblebus className="w-full h-auto" animate={false} />
                   <div className="flex justify-center gap-6 mt-6">
                     <GymnastKid variant="tumble" className="w-12 h-12" color="#F97316" />
                     <GymnastKid variant="jump" className="w-12 h-12" color="#0EA5E9" />
