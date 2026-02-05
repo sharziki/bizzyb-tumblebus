@@ -10,7 +10,7 @@ import { BizzyBee } from '@/components/icons'
 import { 
   ArrowLeft, Users, DollarSign, Calendar, Search, X,
   CheckCircle, Clock, XCircle, Mail, Phone, Baby,
-  ChevronRight, Sparkles, RefreshCw, AlertTriangle, Edit2, Save
+  ChevronRight, Sparkles, Edit2, Save
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -121,7 +121,7 @@ const INITIAL_ENROLLMENTS = [
     ],
     package: '2 Children (Returning)',
     amount: 75,
-    status: 'cancelled',
+    status: 'inactive',
     enrolledDate: '2026-01-15',
     lastPayment: '2026-01-15',
     isNew: false,
@@ -139,15 +139,10 @@ const statusConfig = {
     color: 'bg-amber-100 text-amber-700 border-amber-200',
     icon: Clock 
   },
-  cancelled: { 
-    label: 'Cancelled', 
-    color: 'bg-red-100 text-red-700 border-red-200',
+  inactive: { 
+    label: 'Inactive', 
+    color: 'bg-slate-100 text-slate-600 border-slate-200',
     icon: XCircle 
-  },
-  overdue: {
-    label: 'Overdue',
-    color: 'bg-red-100 text-red-700 border-red-200',
-    icon: AlertTriangle
   },
 }
 
@@ -156,15 +151,15 @@ type Enrollment = typeof INITIAL_ENROLLMENTS[0]
 export default function AdminPage() {
   const [enrollments, setEnrollments] = useState(INITIAL_ENROLLMENTS)
   const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'pending' | 'cancelled' | 'overdue'>('all')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'pending' | 'inactive'>('all')
   const [selectedEnrollment, setSelectedEnrollment] = useState<Enrollment | null>(null)
   const [isEditing, setIsEditing] = useState(false)
   const [editForm, setEditForm] = useState<Enrollment | null>(null)
 
-  // Get effective status (check for overdue)
+  // Get effective status (overdue = inactive)
   const getEffectiveStatus = (enrollment: Enrollment) => {
     if (enrollment.status === 'active' && isOverdue(enrollment.lastPayment)) {
-      return 'overdue'
+      return 'inactive'
     }
     return enrollment.status
   }
@@ -191,11 +186,11 @@ export default function AdminPage() {
 
   const stats = {
     total: enrollments.length,
-    active: enrollments.filter(e => e.status === 'active').length,
+    active: enrollments.filter(e => e.status === 'active' && !isOverdue(e.lastPayment)).length,
     pending: enrollments.filter(e => e.status === 'pending').length,
-    overdue: enrollments.filter(e => e.status === 'active' && isOverdue(e.lastPayment)).length,
+    inactive: enrollments.filter(e => e.status === 'inactive' || (e.status === 'active' && isOverdue(e.lastPayment))).length,
     newToday: enrollments.filter(e => e.isNew).length,
-    revenue: enrollments.filter(e => e.status === 'active').reduce((sum, e) => sum + e.amount, 0),
+    revenue: enrollments.filter(e => e.status === 'active' && !isOverdue(e.lastPayment)).reduce((sum, e) => sum + e.amount, 0),
   }
 
   const openModal = (enrollment: Enrollment) => {
@@ -302,15 +297,15 @@ export default function AdminPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-md bg-red-50">
+          <Card className="border-0 shadow-md">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center">
-                  <AlertTriangle className="w-5 h-5 text-red-600" />
+                <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center">
+                  <XCircle className="w-5 h-5 text-slate-500" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-red-600">{stats.overdue}</p>
-                  <p className="text-xs text-red-500">Overdue</p>
+                  <p className="text-2xl font-bold text-slate-600">{stats.inactive}</p>
+                  <p className="text-xs text-slate-500">Inactive</p>
                 </div>
               </div>
             </CardContent>
@@ -368,16 +363,14 @@ export default function AdminPage() {
                 )}
               </div>
               <div className="flex gap-2 flex-wrap">
-                {(['all', 'active', 'pending', 'overdue', 'cancelled'] as const).map((status) => (
+                {(['all', 'active', 'pending', 'inactive'] as const).map((status) => (
                   <button
                     key={status}
                     onClick={() => setStatusFilter(status)}
                     className={cn(
                       "px-3 py-2 rounded-lg text-sm font-medium transition-all capitalize",
                       statusFilter === status
-                        ? status === 'overdue' 
-                          ? "bg-red-500 text-white"
-                          : "bg-slate-900 text-white"
+                        ? "bg-slate-900 text-white"
                         : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                     )}
                   >
@@ -398,7 +391,7 @@ export default function AdminPage() {
             const colorClass = cardColors[index % cardColors.length]
             const daysUntil = getDaysUntilDue(enrollment.lastPayment)
             const nextDue = getNextPaymentDate(enrollment.lastPayment)
-            const overdue = effectiveStatus === 'overdue'
+            const isInactiveDueToPayment = effectiveStatus === 'inactive' && enrollment.status === 'active'
             
             return (
               <motion.div
@@ -410,7 +403,7 @@ export default function AdminPage() {
                 <Card 
                   className={cn(
                     "border-0 shadow-md cursor-pointer transition-all hover:shadow-lg overflow-hidden",
-                    overdue && "ring-2 ring-red-400"
+                    isInactiveDueToPayment && "ring-2 ring-slate-400"
                   )}
                   onClick={() => openModal(enrollment)}
                 >
@@ -462,11 +455,11 @@ export default function AdminPage() {
                         {enrollment.status === 'active' && nextDue && (
                           <div className={cn(
                             "mt-2 text-xs flex items-center gap-1",
-                            overdue ? "text-red-600 font-medium" : "text-slate-500"
+                            isInactiveDueToPayment ? "text-slate-600 font-medium" : "text-slate-500"
                           )}>
                             <Calendar className="w-3 h-3" />
-                            {overdue ? (
-                              <span>Overdue by {Math.abs(daysUntil!)} days</span>
+                            {isInactiveDueToPayment ? (
+                              <span>Payment overdue by {Math.abs(daysUntil!)} days</span>
                             ) : (
                               <span>Due {nextDue.toLocaleDateString()} ({daysUntil} days)</span>
                             )}
