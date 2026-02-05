@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
-import { BizzyBee, Tumblebus, GymnastKid, HoneycombPattern } from '@/components/icons'
+import { BizzyBee, Tumblebus, GymnastKid, HoneycombPattern, MonkeyBars, Slide } from '@/components/icons'
 import { 
   Menu, Phone, Mail, MapPin, Star, Check, ChevronRight,
   GraduationCap, PartyPopper, Calendar, Shield, Heart, Sparkles,
@@ -65,13 +65,13 @@ export default function HomePage() {
   ]
 
   const equipment = [
-    { icon: '🦎', name: 'Monkey Bars', desc: 'Build upper body strength' },
+    { icon: <MonkeyBars className="w-12 h-12 mx-auto" />, name: 'Monkey Bars', desc: 'Build upper body strength' },
     { icon: '🎪', name: 'Trampoline', desc: 'Safe bouncing fun' },
     { icon: '🤸', name: 'Tumbling Mats', desc: 'Soft landing zones' },
     { icon: '⚖️', name: 'Balance Beam', desc: 'Coordination skills' },
     { icon: '🏋️', name: 'Mini Vault', desc: 'Confidence building' },
     { icon: '⭕', name: 'Rings', desc: 'Grip strength' },
-    { icon: '🛝', name: 'Slide', desc: 'Classic fun' },
+    { icon: <Slide className="w-12 h-12 mx-auto" />, name: 'Slide', desc: 'Classic fun' },
     { icon: '🧗', name: 'Climbing Wall', desc: 'Adventure awaits' },
   ]
 
