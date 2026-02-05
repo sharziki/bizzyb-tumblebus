@@ -11,12 +11,14 @@ model Enrollment {
   email         String   @unique
   parentName    String
   phone         String
-  package       String
+  address       String?
+  package       String   // Plan A, B, or C
   amount        Int
-  status        String   @default("pending") // active, pending, inactive
+  status        String   @default("active") // active, pending, inactive
   enrolledDate  DateTime @default(now())
   lastPayment   DateTime?
-  isNew         Boolean  @default(true)
+  isNew         Boolean  @default(false)
+  consent       Boolean  @default(true)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -29,9 +31,13 @@ model Child {
   id           String     @id @default(cuid())
   name         String
   age          Int
+  birthday     String?
+  sex          String?
   school       String
+  classroom    String?
   shirtSize    String
   gummyBears   Boolean    @default(true)
+  allergies    String?
   
   enrollmentId String
   enrollment   Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
