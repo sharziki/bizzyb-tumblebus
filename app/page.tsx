@@ -372,7 +372,8 @@ export default function HomePage() {
               <h2 className="text-3xl md:text-5xl font-bold text-slate-900 mb-6">
                 Choose Your <span className="text-gradient-honey">Program</span>
               </h2>
-              <p className="text-lg text-slate-600">Pick the perfect option for your little ones!</p>
+              <p className="text-lg text-slate-600 mb-2">Pick the perfect option for your little ones!</p>
+              <p className="text-base text-slate-500">If you would like the Tumblebus to visit your facility or would like to book a party, please contact us.</p>
             </motion.div>
 
             <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
@@ -400,12 +401,12 @@ export default function HomePage() {
                         </li>
                       ))}
                     </ul>
-                    <Link href="/enroll">
+                    <a href="#contact">
                       <Button className="w-full bg-slate-900 hover:bg-slate-800 text-white rounded-full h-12">
-                        Enroll Your Facility
+                        Contact Us
                         <ArrowRight className="w-4 h-4 ml-2" />
                       </Button>
-                    </Link>
+                    </a>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -434,12 +435,12 @@ export default function HomePage() {
                         </li>
                       ))}
                     </ul>
-                    <Link href="/enroll">
+                    <a href="#contact">
                       <Button variant="outline" className="w-full border-2 border-pink-500 text-pink-600 hover:bg-pink-50 rounded-full h-12">
-                        Book a Party
+                        Contact Us
                         <ArrowRight className="w-4 h-4 ml-2" />
                       </Button>
-                    </Link>
+                    </a>
                   </CardContent>
                 </Card>
               </motion.div>
