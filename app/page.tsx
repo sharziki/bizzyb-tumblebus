@@ -554,7 +554,7 @@ export default function HomePage() {
             <div className="grid md:grid-cols-2 gap-12">
               <motion.div variants={fadeInUp} className="space-y-8">
                 {[
-                  { icon: Phone, label: 'Phone', value: 'PHONE_PLACEHOLDER', href: 'tel:PHONE_PLACEHOLDER' },
+                  { icon: Phone, label: 'Phone', value: '(903) 504-1644', href: 'tel:9035041644' },
                   { icon: Mail, label: 'Email', value: 'info@bizzybtumblebus.com', href: 'mailto:info@bizzybtumblebus.com' },
                   { icon: MapPin, label: 'Service Area', value: 'Flint, TX 75762 & Surrounding Areas', href: null },
                 ].map((item, i) => (
@@ -677,7 +677,7 @@ export default function HomePage() {
               <h4 className="font-bold mb-4 text-lg">Contact</h4>
               <ul className="space-y-3 text-slate-400">
                 <li className="flex items-center gap-2">
-                  <Phone className="w-4 h-4" /> PHONE_PLACEHOLDER
+                  <Phone className="w-4 h-4" /> (903) 504-1644
                 </li>
                 <li className="flex items-center gap-2">
                   <Mail className="w-4 h-4" /> info@bizzybtumblebus.com

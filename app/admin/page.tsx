@@ -20,7 +20,7 @@ const MOCK_ENROLLMENTS = [
     refNumber: 'TB-2024-001',
     parentName: 'Sarah Johnson',
     email: 'sarah.j@email.com',
-    phone: '(479) 555-1234',
+    phone: '(903) 555-1234',
     children: [
       { name: 'Emma Johnson', age: 5, school: 'Bright Start Daycare', shirtSize: 'Youth S' },
     ],

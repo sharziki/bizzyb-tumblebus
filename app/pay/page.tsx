@@ -590,7 +590,7 @@ export default function PayOnlinePage() {
                         value={customerInfo.phone}
                         onChange={(e) => setCustomerInfo(prev => ({ ...prev, phone: e.target.value }))}
                         className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
-                        placeholder="(555) 123-4567"
+                        placeholder="(903) 555-1234"
                       />
                     </div>
                   </div>

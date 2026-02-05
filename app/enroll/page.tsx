@@ -529,7 +529,7 @@ export default function EnrollmentPage() {
                         value={formData.phone}
                         onChange={(e) => updateField('phone', e.target.value)}
                         className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none transition-all"
-                        placeholder="(479) 555-1234"
+                        placeholder="(903) 555-1234"
                       />
                     </div>
                   </div>
@@ -570,7 +570,7 @@ export default function EnrollmentPage() {
                       value={formData.emergencyContactPhone}
                       onChange={(e) => updateField('emergencyContactPhone', e.target.value)}
                       className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none transition-all"
-                      placeholder="(479) 555-1234"
+                      placeholder="(903) 555-1234"
                     />
                   </div>
                 </CardContent>
