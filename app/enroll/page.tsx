@@ -215,7 +215,7 @@ export default function EnrollmentPage() {
               
               <div className="flex flex-col gap-3">
                 <Link href="/">
-                  <Button className="w-full bg-slate-900 hover:bg-slate-800 rounded-full h-12">
+                  <Button className="w-full bg-slate-900 hover:bg-slate-800 text-white rounded-full h-12">
                     <Home className="w-4 h-4 mr-2" />
                     Back to Home
                   </Button>
@@ -273,7 +273,7 @@ export default function EnrollmentPage() {
                 <Button
                   onClick={handlePayment}
                   disabled={submitting}
-                  className="w-full bg-primary hover:bg-primary/90 text-slate-900 font-bold rounded-full h-14 text-lg"
+                  className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-full h-14 text-lg"
                 >
                   {submitting ? (
                     <>
@@ -914,7 +914,7 @@ export default function EnrollmentPage() {
                   <Button
                     type="submit"
                     disabled={submitting || !formData.permissionAgreed}
-                    className="w-full bg-primary hover:bg-primary/90 text-slate-900 font-bold rounded-full h-14 text-lg shadow-lg shadow-primary/25 disabled:opacity-50"
+                    className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-full h-14 text-lg shadow-lg shadow-primary/25 disabled:opacity-50"
                   >
                     {submitting ? (
                       <>

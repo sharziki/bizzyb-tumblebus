@@ -137,7 +137,7 @@ export default function HomePage() {
                 </a>
               ))}
               <Link href="/enroll" className="ml-4">
-                <Button className="bg-primary hover:bg-primary/90 text-slate-900 font-semibold rounded-full px-6 shadow-lg shadow-primary/25">
+                <Button className="bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-full px-6 shadow-lg shadow-primary/25">
                   Enroll Now
                   <ArrowRight className="w-4 h-4 ml-1" />
                 </Button>
@@ -170,7 +170,7 @@ export default function HomePage() {
                     ))}
                   </nav>
                   <Link href="/enroll" onClick={() => setMobileMenuOpen(false)}>
-                    <Button className="w-full bg-primary hover:bg-primary/90 text-slate-900 font-semibold rounded-full">
+                    <Button className="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-full">
                       Enroll Now
                     </Button>
                   </Link>
@@ -402,7 +402,7 @@ export default function HomePage() {
                       ))}
                     </ul>
                     <Link href="/enroll">
-                      <Button className="w-full bg-slate-900 hover:bg-slate-800 rounded-full h-12">
+                      <Button className="w-full bg-slate-900 hover:bg-slate-800 text-white rounded-full h-12">
                         Enroll Your Facility
                         <ArrowRight className="w-4 h-4 ml-2" />
                       </Button>
@@ -594,7 +594,7 @@ export default function HomePage() {
                       <input type="email" placeholder="Your Email" className="input-field" />
                       <input type="tel" placeholder="Phone Number" className="input-field" />
                       <textarea placeholder="How can we help?" rows={3} className="input-field resize-none" />
-                      <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-slate-900 font-semibold rounded-full h-12">
+                      <Button type="submit" className="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-full h-12">
                         Send Message
                         <ArrowRight className="w-4 h-4 ml-2" />
                       </Button>
@@ -628,7 +628,7 @@ export default function HomePage() {
               Enroll today and give your kids the gift of fitness and fun!
             </p>
             <Link href="/enroll">
-              <Button size="lg" className="bg-primary hover:bg-primary/90 text-slate-900 font-bold rounded-full px-10 h-16 text-lg shadow-2xl shadow-amber-500/30">
+              <Button size="lg" className="bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-full px-10 h-16 text-lg shadow-2xl shadow-amber-500/30">
                 <Heart className="w-5 h-5 mr-2" />
                 Start Enrollment
                 <ArrowRight className="w-5 h-5 ml-2" />

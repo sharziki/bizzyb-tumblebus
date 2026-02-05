@@ -196,7 +196,7 @@ export default function PayOnlinePage() {
               
               <div className="flex flex-col gap-3">
                 <Link href="/">
-                  <Button className="w-full bg-slate-900 hover:bg-slate-800 rounded-full h-12">
+                  <Button className="w-full bg-slate-900 hover:bg-slate-800 text-white rounded-full h-12">
                     <Home className="w-4 h-4 mr-2" />
                     Back to Home
                   </Button>
@@ -422,7 +422,7 @@ export default function PayOnlinePage() {
                             </div>
                             <Button
                               onClick={() => setCurrentStep(2)}
-                              className="w-full bg-primary hover:bg-primary/90 text-slate-900 font-semibold rounded-full h-12"
+                              className="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-full h-12"
                             >
                               Review Cart
                               <ArrowRight className="w-4 h-4 ml-2" />
@@ -515,7 +515,7 @@ export default function PayOnlinePage() {
                           </Button>
                           <Button
                             onClick={() => setCurrentStep(3)}
-                            className="flex-1 bg-primary hover:bg-primary/90 text-slate-900 font-semibold rounded-full h-12"
+                            className="flex-1 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-full h-12"
                           >
                             Proceed to Payment
                             <ArrowRight className="w-4 h-4 ml-2" />
