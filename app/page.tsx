@@ -61,7 +61,6 @@ export default function HomePage() {
     { href: '#services', label: 'Services' },
     { href: '#equipment', label: 'Equipment' },
     { href: '#contact', label: 'Contact' },
-    { href: '/pay', label: 'Pay Online' },
   ]
 
   const equipment = [
@@ -138,7 +137,7 @@ export default function HomePage() {
               ))}
               <Link href="/enroll" className="ml-4">
                 <Button className="bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-full px-6 shadow-lg shadow-primary/25">
-                  Enroll Now
+                  Enroll/Pay
                   <ArrowRight className="w-4 h-4 ml-1" />
                 </Button>
               </Link>
@@ -171,7 +170,7 @@ export default function HomePage() {
                   </nav>
                   <Link href="/enroll" onClick={() => setMobileMenuOpen(false)}>
                     <Button className="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-full">
-                      Enroll Now
+                      Enroll/Pay
                     </Button>
                   </Link>
                 </div>
@@ -252,7 +251,7 @@ export default function HomePage() {
                 <Link href="/enroll">
                   <Button size="lg" className="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-full px-8 h-14 text-lg shadow-xl shadow-slate-900/20">
                     <PartyPopper className="w-5 h-5 mr-2" />
-                    Enroll Now
+                    Enroll/Pay
                   </Button>
                 </Link>
                 <a href="#services">
@@ -666,7 +665,7 @@ export default function HomePage() {
             <div>
               <h4 className="font-bold mb-4 text-lg">Services</h4>
               <ul className="space-y-3 text-slate-400">
-                <li><Link href="/enroll" className="hover:text-primary transition-colors">Enroll Now</Link></li>
+                <li><Link href="/enroll" className="hover:text-primary transition-colors">Enroll/Pay</Link></li>
                 <li><a href="#services" className="hover:text-primary transition-colors">Weekly Programs</a></li>
                 <li><a href="#services" className="hover:text-primary transition-colors">Birthday Parties</a></li>
                 <li><a href="#services" className="hover:text-primary transition-colors">Special Events</a></li>
