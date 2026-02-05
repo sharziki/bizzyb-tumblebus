@@ -550,58 +550,38 @@ export default function HomePage() {
               </p>
             </motion.div>
 
-            <div className="grid md:grid-cols-2 gap-12">
-              <motion.div variants={fadeInUp} className="space-y-8">
-                {[
-                  { icon: Phone, label: 'Phone', value: '(903) 504-1644', href: 'tel:9035041644' },
-                  { icon: Mail, label: 'Email', value: 'info@bizzybtumblebus.com', href: 'mailto:info@bizzybtumblebus.com' },
-                  { icon: MapPin, label: 'Service Area', value: 'Flint, TX 75762 & Surrounding Areas', href: null },
-                ].map((item, i) => (
-                  <div key={i} className="flex items-center gap-4">
-                    <div className="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center flex-shrink-0">
-                      <item.icon className="w-6 h-6 text-amber-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-slate-500 mb-0.5">{item.label}</p>
-                      {item.href ? (
-                        <a href={item.href} className="font-semibold text-slate-900 hover:text-primary transition-colors">
-                          {item.value}
-                        </a>
-                      ) : (
-                        <p className="font-semibold text-slate-900">{item.value}</p>
-                      )}
-                    </div>
+            <motion.div variants={fadeInUp} className="max-w-md mx-auto space-y-8">
+              {[
+                { icon: Phone, label: 'Phone', value: '(903) 504-1644', href: 'tel:9035041644' },
+                { icon: Mail, label: 'Email', value: 'bizzybtumblebus@gmail.com', href: 'mailto:bizzybtumblebus@gmail.com' },
+                { icon: MapPin, label: 'Service Area', value: 'Flint, TX 75762 & Surrounding Areas', href: null },
+              ].map((item, i) => (
+                <div key={i} className="flex items-center gap-4">
+                  <div className="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center flex-shrink-0">
+                    <item.icon className="w-6 h-6 text-amber-600" />
                   </div>
-                ))}
-                
-                <div className="flex gap-3 pt-4">
-                  <a href="#" className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center text-white hover:bg-blue-700 transition-colors">
-                    <Facebook className="w-5 h-5" />
-                  </a>
-                  <a href="#" className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-500 rounded-xl flex items-center justify-center text-white hover:opacity-90 transition-opacity">
-                    <Instagram className="w-5 h-5" />
-                  </a>
+                  <div>
+                    <p className="text-sm text-slate-500 mb-0.5">{item.label}</p>
+                    {item.href ? (
+                      <a href={item.href} className="font-semibold text-slate-900 hover:text-primary transition-colors">
+                        {item.value}
+                      </a>
+                    ) : (
+                      <p className="font-semibold text-slate-900">{item.value}</p>
+                    )}
+                  </div>
                 </div>
-              </motion.div>
-
-              <motion.div variants={fadeInUp}>
-                <Card className="border-0 shadow-xl">
-                  <CardContent className="p-6 md:p-8">
-                    <h3 className="text-xl font-bold text-slate-900 mb-6">Quick Contact</h3>
-                    <form className="space-y-4">
-                      <input type="text" placeholder="Your Name" className="input-field" />
-                      <input type="email" placeholder="Your Email" className="input-field" />
-                      <input type="tel" placeholder="Phone Number" className="input-field" />
-                      <textarea placeholder="How can we help?" rows={3} className="input-field resize-none" />
-                      <Button type="submit" className="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-full h-12">
-                        Send Message
-                        <ArrowRight className="w-4 h-4 ml-2" />
-                      </Button>
-                    </form>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            </div>
+              ))}
+              
+              <div className="flex gap-3 pt-4 justify-center">
+                <a href="#" className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center text-white hover:bg-blue-700 transition-colors">
+                  <Facebook className="w-5 h-5" />
+                </a>
+                <a href="#" className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-500 rounded-xl flex items-center justify-center text-white hover:opacity-90 transition-opacity">
+                  <Instagram className="w-5 h-5" />
+                </a>
+              </div>
+            </motion.div>
           </AnimatedSection>
         </div>
       </section>
@@ -679,7 +659,7 @@ export default function HomePage() {
                   <Phone className="w-4 h-4" /> (903) 504-1644
                 </li>
                 <li className="flex items-center gap-2">
-                  <Mail className="w-4 h-4" /> info@bizzybtumblebus.com
+                  <Mail className="w-4 h-4" /> bizzybtumblebus@gmail.com
                 </li>
                 <li className="flex items-center gap-2">
                   <Calendar className="w-4 h-4" /> Mon-Sat: 8am-6pm
