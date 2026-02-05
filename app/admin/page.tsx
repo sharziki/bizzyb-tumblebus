@@ -10,7 +10,7 @@ import { BizzyBee } from '@/components/icons'
 import { 
   ArrowLeft, Users, DollarSign, Calendar, Search, X,
   CheckCircle, Clock, XCircle, Mail, Phone, Baby,
-  ChevronRight, Sparkles, Edit2, Save, Loader2
+  ChevronRight, Sparkles, Edit2, Save, Loader2, Trash2
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -102,6 +102,7 @@ export default function AdminPage() {
   const [isEditing, setIsEditing] = useState(false)
   const [editForm, setEditForm] = useState<Enrollment | null>(null)
   const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   // Fetch enrollments on mount
   useEffect(() => {
@@ -195,6 +196,28 @@ export default function AdminPage() {
       alert('Failed to save changes')
     } finally {
       setSaving(false)
+    }
+  }
+
+  const deleteEnrollment = async () => {
+    if (!selectedEnrollment) return
+    if (!confirm(`Are you sure you want to delete ${selectedEnrollment.parentName}? This cannot be undone.`)) return
+    
+    setDeleting(true)
+    try {
+      const res = await fetch(`/api/enrollments/${selectedEnrollment.id}`, {
+        method: 'DELETE',
+      })
+      
+      if (!res.ok) throw new Error('Failed to delete')
+      
+      setEnrollments(prev => prev.filter(e => e.id !== selectedEnrollment.id))
+      closeModal()
+    } catch (error) {
+      console.error('Failed to delete:', error)
+      alert('Failed to delete enrollment')
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -734,6 +757,19 @@ export default function AdminPage() {
                         Send Payment Reminder
                       </Button>
                     </a>
+                    <Button 
+                      variant="outline" 
+                      className="w-full rounded-xl text-red-600 border-red-200 hover:bg-red-50"
+                      onClick={deleteEnrollment}
+                      disabled={deleting}
+                    >
+                      {deleting ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <Trash2 className="w-4 h-4 mr-2" />
+                      )}
+                      Delete Customer
+                    </Button>
                   </div>
                 )}
               </div>
