@@ -7,22 +7,21 @@ datasource db {
 }
 
 model Enrollment {
-  id            String   @id @default(cuid())
-  email         String   @unique
-  parentName    String
-  phone         String
-  address       String?
-  package       String   // Plan A, B, or C
-  amount        Int
-  status        String   @default("active") // active, pending, inactive
-  enrolledDate  DateTime @default(now())
-  lastPayment   DateTime?
-  isNew         Boolean  @default(false)
-  consent       Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  children      Child[]
+  id           String    @id @default(cuid())
+  email        String    @unique
+  parentName   String
+  phone        String
+  package      String
+  amount       Int
+  status       String    @default("active")
+  enrolledDate DateTime  @default(now())
+  lastPayment  DateTime?
+  isNew        Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  address      String?
+  consent      Boolean   @default(true)
+  children     Child[]
 
   @@map("enrollments")
 }
@@ -31,15 +30,14 @@ model Child {
   id           String     @id @default(cuid())
   name         String
   age          Int
-  birthday     String?
-  sex          String?
   school       String
-  classroom    String?
   shirtSize    String
   gummyBears   Boolean    @default(true)
-  allergies    String?
-  
   enrollmentId String
+  allergies    String?
+  birthday     String?
+  classroom    String?
+  sex          String?
   enrollment   Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
 
   @@map("children")

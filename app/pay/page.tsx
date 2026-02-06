@@ -158,10 +158,29 @@ export default function PayOnlinePage() {
 
   const handleCheckout = async () => {
     setIsProcessing(true)
-    // Simulate Stripe checkout
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    setIsComplete(true)
-    setIsProcessing(false)
+    try {
+      const response = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: cart,
+          customerInfo,
+        }),
+      })
+      
+      const data = await response.json()
+      
+      if (data.url) {
+        // Redirect to Stripe Checkout
+        window.location.href = data.url
+      } else {
+        throw new Error(data.error || 'Failed to create checkout session')
+      }
+    } catch (error) {
+      console.error('Checkout error:', error)
+      alert('Payment failed. Please try again.')
+      setIsProcessing(false)
+    }
   }
 
   // Success Screen
