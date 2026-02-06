@@ -86,7 +86,7 @@ const PRODUCTS = {
   ],
 }
 
-const SHIRT_SIZES = ['Youth XS', 'Youth S', 'Youth M', 'Youth L', 'Adult S', 'Adult M', 'Adult L', 'Adult XL']
+// Shirt sizes removed - now using free text input for toddler sizes (2T, 3T, 4T, etc.)
 
 interface ChildInfo {
   firstName: string
@@ -104,9 +104,10 @@ interface CustomerData {
   parentLastName: string
   phone: string
   children: ChildInfo[]
-  emergencyContactName: string
-  emergencyContactPhone: string
-  emergencyRelation: string
+  hasSecondParent?: boolean
+  secondParentFirstName?: string
+  secondParentLastName?: string
+  secondParentPhone?: string
 }
 
 interface CartItem {
@@ -151,9 +152,10 @@ export default function EnrollmentPage() {
     parentLastName: '',
     phone: '',
     children: [{ ...emptyChild }] as ChildInfo[],
-    emergencyContactName: '',
-    emergencyContactPhone: '',
-    emergencyRelation: '',
+    hasSecondParent: false,
+    secondParentFirstName: '',
+    secondParentLastName: '',
+    secondParentPhone: '',
     permissionAgreed: false,
   })
 
@@ -188,9 +190,10 @@ export default function EnrollmentPage() {
                 canHaveGummyBears: c.canHaveGummyBears ?? true,
               }))
             : [{ ...emptyChild }],
-          emergencyContactName: '',
-          emergencyContactPhone: '',
-          emergencyRelation: '',
+          hasSecondParent: false,
+          secondParentFirstName: '',
+          secondParentLastName: '',
+          secondParentPhone: '',
           permissionAgreed: false,
         })
       } else {
@@ -273,8 +276,7 @@ export default function EnrollmentPage() {
         )
       case 4:
         return formData.parentFirstName && formData.parentLastName && 
-               formData.phone && formData.emergencyContactName && 
-               formData.emergencyContactPhone && formData.permissionAgreed
+               formData.phone && formData.permissionAgreed
       default: return true
     }
   }
@@ -660,16 +662,13 @@ export default function EnrollmentPage() {
                       </div>
                       <div>
                         <label className="text-sm font-medium text-slate-700 mb-1 block">Shirt Size *</label>
-                        <select
+                        <input
+                          type="text"
                           value={child.shirtSize}
                           onChange={(e) => updateChild(index, 'shirtSize', e.target.value)}
-                          className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none transition-all bg-white"
-                        >
-                          <option value="">Select...</option>
-                          {SHIRT_SIZES.map(size => (
-                            <option key={size} value={size}>{size}</option>
-                          ))}
-                        </select>
+                          className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none transition-all"
+                          placeholder="e.g. 2T, 3T, 4T, XS"
+                        />
                       </div>
                     </div>
                     <div>
@@ -750,42 +749,55 @@ export default function EnrollmentPage() {
               </Card>
 
               <Card className="mb-4 border-0 shadow-lg overflow-hidden">
-                <div className="px-4 py-3 bg-red-500 flex items-center gap-2 text-white">
-                  <Phone className="w-5 h-5" />
-                  <span className="font-semibold">Emergency Contact</span>
-                </div>
-                <CardContent className="p-4 space-y-4">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-sm font-medium text-slate-700 mb-1 block">Name *</label>
-                      <input
-                        type="text"
-                        value={formData.emergencyContactName}
-                        onChange={(e) => updateField('emergencyContactName', e.target.value)}
-                        className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none transition-all"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-slate-700 mb-1 block">Relationship *</label>
-                      <input
-                        type="text"
-                        value={formData.emergencyRelation}
-                        onChange={(e) => updateField('emergencyRelation', e.target.value)}
-                        className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none transition-all"
-                        placeholder="e.g., Grandmother"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-slate-700 mb-1 block">Phone *</label>
+                <CardContent className="p-4">
+                  <label className="flex items-center gap-3 cursor-pointer">
                     <input
-                      type="tel"
-                      value={formData.emergencyContactPhone}
-                      onChange={(e) => updateField('emergencyContactPhone', e.target.value)}
-                      className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none transition-all"
-                      placeholder="(903) 555-1234"
+                      type="checkbox"
+                      checked={formData.hasSecondParent}
+                      onChange={(e) => updateField('hasSecondParent', e.target.checked)}
+                      className="w-5 h-5 rounded border-slate-300 text-amber-500 focus:ring-amber-500"
                     />
-                  </div>
+                    <span className="text-sm text-slate-700">Add a second parent/guardian (optional)</span>
+                  </label>
+                  
+                  {formData.hasSecondParent && (
+                    <div className="mt-4 pt-4 border-t space-y-4">
+                      <div className="flex items-center gap-2 text-slate-600 mb-2">
+                        <Users className="w-4 h-4" />
+                        <span className="text-sm font-medium">Second Parent/Guardian</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-sm font-medium text-slate-700 mb-1 block">First Name</label>
+                          <input
+                            type="text"
+                            value={formData.secondParentFirstName}
+                            onChange={(e) => updateField('secondParentFirstName', e.target.value)}
+                            className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none transition-all"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-slate-700 mb-1 block">Last Name</label>
+                          <input
+                            type="text"
+                            value={formData.secondParentLastName}
+                            onChange={(e) => updateField('secondParentLastName', e.target.value)}
+                            className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none transition-all"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-slate-700 mb-1 block">Phone</label>
+                        <input
+                          type="tel"
+                          value={formData.secondParentPhone}
+                          onChange={(e) => updateField('secondParentPhone', e.target.value)}
+                          className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none transition-all"
+                          placeholder="(903) 555-1234"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
