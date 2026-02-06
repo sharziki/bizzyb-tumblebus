@@ -88,35 +88,6 @@ const PRODUCTS = {
 
 const SHIRT_SIZES = ['Youth XS', 'Youth S', 'Youth M', 'Youth L', 'Adult S', 'Adult M', 'Adult L', 'Adult XL']
 
-// Mock database of existing customers
-const MOCK_CUSTOMERS: Record<string, CustomerData> = {
-  'sarah@email.com': {
-    email: 'sarah@email.com',
-    parentFirstName: 'Sarah',
-    parentLastName: 'Johnson',
-    phone: '(903) 555-1234',
-    children: [
-      { firstName: 'Emma', lastName: 'Johnson', age: '5', school: 'Bright Start Daycare', shirtSize: 'Youth S', canHaveGummyBears: true }
-    ],
-    emergencyContactName: 'Mike Johnson',
-    emergencyContactPhone: '(903) 555-5678',
-    emergencyRelation: 'Father',
-  },
-  'mike@email.com': {
-    email: 'mike@email.com',
-    parentFirstName: 'Mike',
-    parentLastName: 'Thompson',
-    phone: '(903) 555-9999',
-    children: [
-      { firstName: 'Liam', lastName: 'Thompson', age: '4', school: 'Little Stars', shirtSize: 'Youth XS', canHaveGummyBears: true },
-      { firstName: 'Sophia', lastName: 'Thompson', age: '7', school: 'Little Stars', shirtSize: 'Youth M', canHaveGummyBears: false }
-    ],
-    emergencyContactName: 'Lisa Thompson',
-    emergencyContactPhone: '(903) 555-8888',
-    emergencyRelation: 'Mother',
-  },
-}
-
 interface ChildInfo {
   firstName: string
   lastName: string
@@ -189,30 +160,45 @@ export default function EnrollmentPage() {
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
 
-  // Search for existing customer
+  // Search for existing customer in Supabase
   const searchCustomer = async () => {
     if (!email) return
     setIsSearching(true)
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    const found = MOCK_CUSTOMERS[email.toLowerCase()]
-    if (found) {
-      setExistingCustomer(found)
-      setIsReturning(true)
-      // Pre-fill form
-      setFormData({
-        parentFirstName: found.parentFirstName,
-        parentLastName: found.parentLastName,
-        phone: found.phone,
-        children: found.children.map(c => ({ ...c })),
-        emergencyContactName: found.emergencyContactName,
-        emergencyContactPhone: found.emergencyContactPhone,
-        emergencyRelation: found.emergencyRelation,
-        permissionAgreed: false,
-      })
-    } else {
+    try {
+      const res = await fetch(`/api/enrollments/lookup?email=${encodeURIComponent(email)}`)
+      const data = await res.json()
+      
+      if (data.found) {
+        setExistingCustomer(data)
+        setIsReturning(true)
+        // Pre-fill form with existing data
+        setFormData({
+          parentFirstName: data.parentFirstName || '',
+          parentLastName: data.parentLastName || '',
+          phone: data.phone || '',
+          children: data.children?.length > 0 
+            ? data.children.map((c: any) => ({
+                firstName: c.firstName || '',
+                lastName: c.lastName || '',
+                age: c.age || '',
+                dateOfBirth: c.dateOfBirth || '',
+                school: c.school || '',
+                shirtSize: c.shirtSize || '',
+                canHaveGummyBears: c.canHaveGummyBears ?? true,
+              }))
+            : [{ ...emptyChild }],
+          emergencyContactName: '',
+          emergencyContactPhone: '',
+          emergencyRelation: '',
+          permissionAgreed: false,
+        })
+      } else {
+        setExistingCustomer(null)
+        setIsReturning(false)
+      }
+    } catch (error) {
+      console.error('Customer lookup failed:', error)
       setExistingCustomer(null)
       setIsReturning(false)
     }
