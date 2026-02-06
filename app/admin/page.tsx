@@ -10,7 +10,8 @@ import { BizzyBee } from '@/components/icons'
 import { 
   ArrowLeft, Users, DollarSign, Calendar, Search, X,
   CheckCircle, Clock, XCircle, Mail, Phone, Baby,
-  ChevronRight, Sparkles, Edit2, Save, Loader2, Trash2
+  ChevronRight, Sparkles, Edit2, Save, Loader2, Trash2,
+  Lock, LogOut, Eye, EyeOff
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -99,6 +100,15 @@ type Enrollment = {
 }
 
 export default function AdminPage() {
+  // Auth state
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [authLoading, setAuthLoading] = useState(true)
+  const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [authError, setAuthError] = useState('')
+  const [loggingIn, setLoggingIn] = useState(false)
+
+  // Data state
   const [enrollments, setEnrollments] = useState<Enrollment[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
@@ -109,10 +119,60 @@ export default function AdminPage() {
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
-  // Fetch enrollments on mount
+  // Check auth on mount
   useEffect(() => {
-    fetchEnrollments()
+    checkAuth()
   }, [])
+
+  // Fetch enrollments when authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchEnrollments()
+    }
+  }, [isAuthenticated])
+
+  const checkAuth = async () => {
+    try {
+      const res = await fetch('/api/admin/auth')
+      const data = await res.json()
+      setIsAuthenticated(data.authenticated)
+    } catch (error) {
+      setIsAuthenticated(false)
+    } finally {
+      setAuthLoading(false)
+    }
+  }
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoggingIn(true)
+    setAuthError('')
+    
+    try {
+      const res = await fetch('/api/admin/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      })
+      
+      if (res.ok) {
+        setIsAuthenticated(true)
+        setPassword('')
+      } else {
+        setAuthError('Invalid password')
+      }
+    } catch (error) {
+      setAuthError('Login failed')
+    } finally {
+      setLoggingIn(false)
+    }
+  }
+
+  const handleLogout = async () => {
+    await fetch('/api/admin/auth', { method: 'DELETE' })
+    setIsAuthenticated(false)
+    setEnrollments([])
+  }
 
   const fetchEnrollments = async () => {
     try {
@@ -239,6 +299,79 @@ export default function AdminPage() {
     return `mailto:${enrollment.email}?subject=${subject}&body=${body}`
   }
 
+  // Auth loading
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-amber-500 mx-auto mb-4" />
+          <p className="text-slate-600">Checking authentication...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Login form
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md border-0 shadow-xl">
+          <CardContent className="p-8">
+            <div className="text-center mb-8">
+              <BizzyBee className="w-16 h-16 mx-auto mb-4" animate={false} />
+              <h1 className="text-2xl font-bold text-slate-900">Admin Login</h1>
+              <p className="text-slate-500 mt-1">Enter password to access the dashboard</p>
+            </div>
+            
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter admin password"
+                  className="w-full pl-11 pr-11 py-3 rounded-xl border border-slate-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none transition-all"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+              
+              {authError && (
+                <p className="text-red-500 text-sm text-center">{authError}</p>
+              )}
+              
+              <Button
+                type="submit"
+                disabled={loggingIn}
+                className="w-full bg-slate-900 hover:bg-slate-800 text-white rounded-xl h-12"
+              >
+                {loggingIn ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  'Login'
+                )}
+              </Button>
+            </form>
+            
+            <div className="mt-6 text-center">
+              <Link href="/" className="text-sm text-slate-500 hover:text-amber-600">
+                ← Back to website
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  // Data loading
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
@@ -265,12 +398,18 @@ export default function AdminPage() {
                 </div>
               </Link>
             </div>
-            <Link href="/">
-              <Button variant="outline" size="sm">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Site
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={handleLogout}>
+                <LogOut className="w-4 h-4 mr-2" />
+                Logout
               </Button>
-            </Link>
+              <Link href="/">
+                <Button variant="outline" size="sm">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back to Site
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </header>
