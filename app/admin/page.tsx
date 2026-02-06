@@ -75,7 +75,6 @@ type Child = {
   name: string
   age: number
   birthday: string | null
-  sex: string | null
   school: string
   classroom: string | null
   shirtSize: string
@@ -684,7 +683,7 @@ export default function AdminPage() {
                               <div>
                                 <p className="font-semibold text-slate-900">{child.name}</p>
                                 <p className="text-xs text-slate-500">
-                                  Age {child.age} {child.sex && `• ${child.sex}`} {child.birthday && `• Born ${child.birthday}`}
+                                  Age {child.age} {child.birthday && `• Born ${child.birthday}`}
                                 </p>
                               </div>
                             </div>
