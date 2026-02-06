@@ -212,11 +212,6 @@ export default function HomePage() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8 }}
             >
-              <Badge className="bg-primary/20 text-slate-800 hover:bg-primary/30 mb-6 py-1.5 px-4 text-sm font-medium">
-                <Sparkles className="w-4 h-4 mr-1.5" />
-                Now Booking for 2026!
-              </Badge>
-              
               <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-slate-900 mb-6 leading-[1.1] tracking-tight">
                 We Bring the{' '}
                 <span className="text-gradient-honey">GYM</span>
