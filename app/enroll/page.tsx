@@ -12,6 +12,7 @@ import {
   CreditCard, Home, Shield, Mail, Search, ShoppingCart, Plus, Minus,
   Sparkles, UserCheck, X, Package
 } from 'lucide-react'
+import StripePayment from '@/components/stripe-payment'
 import { cn } from '@/lib/utils'
 
 // Products from Stripe
@@ -161,6 +162,8 @@ export default function EnrollmentPage() {
 
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const [showPaymentForm, setShowPaymentForm] = useState(false)
+  const [paymentError, setPaymentError] = useState('')
 
   // Search for existing customer in Supabase
   const searchCustomer = async () => {
@@ -292,12 +295,20 @@ export default function EnrollmentPage() {
     if (step > 1) setStep(step - 1)
   }
 
-  const handleSubmit = async () => {
-    if (!canProceed()) return
-    setSubmitting(true)
-    await new Promise(resolve => setTimeout(resolve, 2000))
+  const handlePaymentSuccess = () => {
     setSubmitted(true)
-    setSubmitting(false)
+    setShowPaymentForm(false)
+  }
+
+  const handlePaymentError = (error: string) => {
+    setPaymentError(error)
+  }
+
+  const startPayment = () => {
+    if (canProceed()) {
+      setPaymentError('')
+      setShowPaymentForm(true)
+    }
   }
 
   const enrollmentNumber = `TB-${Date.now().toString().slice(-6)}`
@@ -881,28 +892,48 @@ export default function EnrollmentPage() {
                     <p><strong>Phone:</strong> {formData.phone}</p>
                   </div>
 
-                  {/* Pay Button */}
-                  <Button
-                    onClick={handleSubmit}
-                    disabled={submitting}
-                    className="w-full bg-[#635bff] hover:bg-[#5851db] text-white font-bold rounded-full h-14 text-lg shadow-lg"
-                  >
-                    {submitting ? (
-                      <>
-                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                        Processing...
-                      </>
-                    ) : (
-                      <>
-                        <CreditCard className="w-5 h-5 mr-2" />
-                        Pay ${cartTotal.toFixed(2)}
-                      </>
-                    )}
-                  </Button>
+                  {/* Payment Section */}
+                  {!showPaymentForm ? (
+                    <Button
+                      onClick={startPayment}
+                      className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-full h-14 text-lg shadow-lg"
+                    >
+                      <CreditCard className="w-5 h-5 mr-2" />
+                      Continue to Payment
+                    </Button>
+                  ) : (
+                    <div className="space-y-4">
+                      {paymentError && (
+                        <div className="p-3 bg-red-50 text-red-600 rounded-xl text-sm">
+                          {paymentError}
+                        </div>
+                      )}
+                      <StripePayment
+                        amount={cartTotal}
+                        customerInfo={{
+                          name: `${formData.parentFirstName} ${formData.parentLastName}`,
+                          email: email,
+                          phone: formData.phone,
+                        }}
+                        onSuccess={handlePaymentSuccess}
+                        onError={handlePaymentError}
+                      />
+                      <Button
+                        onClick={() => setShowPaymentForm(false)}
+                        variant="ghost"
+                        className="w-full"
+                      >
+                        <ArrowLeft className="w-4 h-4 mr-2" />
+                        Back to Review
+                      </Button>
+                    </div>
+                  )}
                   
-                  <p className="text-center text-xs text-slate-500 mt-3 flex items-center justify-center gap-1">
-                    <Shield className="w-3 h-3" /> Secure payment powered by Stripe
-                  </p>
+                  {!showPaymentForm && (
+                    <p className="text-center text-xs text-slate-500 mt-3 flex items-center justify-center gap-1">
+                      <Shield className="w-3 h-3" /> Secure payment powered by Stripe
+                    </p>
+                  )}
                 </CardContent>
               </Card>
             </motion.div>
