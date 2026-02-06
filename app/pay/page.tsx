@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { BizzyBee } from '@/components/icons'
+import StripePayment from '@/components/stripe-payment'
 import { 
   ArrowLeft, ArrowRight, ShoppingCart, Trash2, Plus, Minus,
   CreditCard, Check, Loader2, Home, Users, Calendar, Package,
@@ -117,6 +118,8 @@ export default function PayOnlinePage() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [isComplete, setIsComplete] = useState(false)
   const [activeCategory, setActiveCategory] = useState<'packages' | 'sessions' | 'misc'>('packages')
+  const [showPaymentForm, setShowPaymentForm] = useState(false)
+  const [paymentError, setPaymentError] = useState('')
 
   // Customer info for checkout
   const [customerInfo, setCustomerInfo] = useState({
@@ -156,30 +159,19 @@ export default function PayOnlinePage() {
   const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0)
 
-  const handleCheckout = async () => {
-    setIsProcessing(true)
-    try {
-      const response = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          items: cart,
-          customerInfo,
-        }),
-      })
-      
-      const data = await response.json()
-      
-      if (data.url) {
-        // Redirect to Stripe Checkout
-        window.location.href = data.url
-      } else {
-        throw new Error(data.error || 'Failed to create checkout session')
-      }
-    } catch (error) {
-      console.error('Checkout error:', error)
-      alert('Payment failed. Please try again.')
-      setIsProcessing(false)
+  const handlePaymentSuccess = () => {
+    setIsComplete(true)
+    setShowPaymentForm(false)
+  }
+
+  const handlePaymentError = (error: string) => {
+    setPaymentError(error)
+  }
+
+  const startPayment = () => {
+    if (customerInfo.name && customerInfo.email) {
+      setPaymentError('')
+      setShowPaymentForm(true)
     }
   }
 
@@ -578,77 +570,88 @@ export default function PayOnlinePage() {
                     </div>
                   </div>
 
-                  {/* Customer Info */}
-                  <div className="space-y-4 mb-6">
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
-                      <input
-                        type="text"
-                        value={customerInfo.name}
-                        onChange={(e) => setCustomerInfo(prev => ({ ...prev, name: e.target.value }))}
-                        className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
-                        placeholder="John Smith"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
-                      <input
-                        type="email"
-                        value={customerInfo.email}
-                        onChange={(e) => setCustomerInfo(prev => ({ ...prev, email: e.target.value }))}
-                        className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
-                        placeholder="john@example.com"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Phone</label>
-                      <input
-                        type="tel"
-                        value={customerInfo.phone}
-                        onChange={(e) => setCustomerInfo(prev => ({ ...prev, phone: e.target.value }))}
-                        className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
-                        placeholder="(903) 555-1234"
-                      />
-                    </div>
-                  </div>
+                  {!showPaymentForm ? (
+                    <>
+                      {/* Customer Info */}
+                      <div className="space-y-4 mb-6">
+                        <div>
+                          <label className="block text-sm font-medium text-slate-700 mb-1">Full Name *</label>
+                          <input
+                            type="text"
+                            value={customerInfo.name}
+                            onChange={(e) => setCustomerInfo(prev => ({ ...prev, name: e.target.value }))}
+                            className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none"
+                            placeholder="John Smith"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-slate-700 mb-1">Email *</label>
+                          <input
+                            type="email"
+                            value={customerInfo.email}
+                            onChange={(e) => setCustomerInfo(prev => ({ ...prev, email: e.target.value }))}
+                            className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none"
+                            placeholder="john@example.com"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-slate-700 mb-1">Phone</label>
+                          <input
+                            type="tel"
+                            value={customerInfo.phone}
+                            onChange={(e) => setCustomerInfo(prev => ({ ...prev, phone: e.target.value }))}
+                            className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none"
+                            placeholder="(903) 555-1234"
+                          />
+                        </div>
+                      </div>
 
-                  {/* Stripe Payment Button */}
-                  <Button
-                    onClick={handleCheckout}
-                    disabled={isProcessing || !customerInfo.name || !customerInfo.email}
-                    className="w-full bg-[#635bff] hover:bg-[#5851db] text-white font-semibold rounded-full h-14 text-lg shadow-lg disabled:opacity-50"
-                  >
-                    {isProcessing ? (
-                      <>
-                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                        Processing...
-                      </>
-                    ) : (
-                      <>
+                      <Button
+                        onClick={startPayment}
+                        disabled={!customerInfo.name || !customerInfo.email}
+                        className="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-full h-14 text-lg shadow-lg disabled:opacity-50"
+                      >
                         <CreditCard className="w-5 h-5 mr-2" />
-                        Pay ${cartTotal.toFixed(2)}
-                      </>
-                    )}
-                  </Button>
-                  
-                  <p className="text-center text-xs text-slate-500 mt-4 flex items-center justify-center gap-2">
-                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                      <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                    </svg>
-                    Secure payment powered by Stripe
-                  </p>
+                        Continue to Payment
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      {/* Stripe Elements Payment Form */}
+                      {paymentError && (
+                        <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-xl text-sm">
+                          {paymentError}
+                        </div>
+                      )}
+                      <StripePayment
+                        amount={cartTotal}
+                        customerInfo={customerInfo}
+                        onSuccess={handlePaymentSuccess}
+                        onError={handlePaymentError}
+                      />
+                      <Button
+                        onClick={() => setShowPaymentForm(false)}
+                        variant="ghost"
+                        className="w-full mt-4"
+                      >
+                        <ArrowLeft className="w-4 h-4 mr-2" />
+                        Edit Info
+                      </Button>
+                    </>
+                  )}
 
-                  <Button
-                    onClick={() => setCurrentStep(2)}
-                    variant="ghost"
-                    className="w-full mt-4"
-                  >
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    Back to Cart
-                  </Button>
+                  {!showPaymentForm && (
+                    <Button
+                      onClick={() => setCurrentStep(2)}
+                      variant="ghost"
+                      className="w-full mt-4"
+                    >
+                      <ArrowLeft className="w-4 h-4 mr-2" />
+                      Back to Cart
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
 
