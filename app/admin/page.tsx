@@ -74,9 +74,13 @@ type Child = {
   id: string
   name: string
   age: number
+  birthday: string | null
+  sex: string | null
   school: string
+  classroom: string | null
   shirtSize: string
   gummyBears: boolean
+  allergies: string | null
 }
 
 type Enrollment = {
@@ -84,12 +88,14 @@ type Enrollment = {
   email: string
   parentName: string
   phone: string
+  address: string | null
   package: string
   amount: number
   status: string
   enrolledDate: string
   lastPayment: string | null
   isNew: boolean
+  consent: boolean
   children: Child[]
 }
 
@@ -586,6 +592,13 @@ export default function AdminPage() {
                         className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none"
                         placeholder="Phone"
                       />
+                      <input
+                        type="text"
+                        value={editForm?.address || ''}
+                        onChange={(e) => setEditForm(prev => prev ? { ...prev, address: e.target.value } : null)}
+                        className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none"
+                        placeholder="Address"
+                      />
                     </div>
                   ) : (
                     <>
@@ -604,6 +617,11 @@ export default function AdminPage() {
                         <Phone className="w-4 h-4" />
                         {selectedEnrollment.phone}
                       </a>
+                      {selectedEnrollment.address && (
+                        <p className="text-sm text-slate-600 mt-2">
+                          📍 {selectedEnrollment.address}
+                        </p>
+                      )}
                     </>
                   )}
                 </div>
@@ -665,7 +683,9 @@ export default function AdminPage() {
                               </div>
                               <div>
                                 <p className="font-semibold text-slate-900">{child.name}</p>
-                                <p className="text-xs text-slate-500">Age {child.age}</p>
+                                <p className="text-xs text-slate-500">
+                                  Age {child.age} {child.sex && `• ${child.sex}`} {child.birthday && `• Born ${child.birthday}`}
+                                </p>
                               </div>
                             </div>
                             <div className="grid grid-cols-2 gap-2 text-sm">
@@ -674,18 +694,25 @@ export default function AdminPage() {
                                 <p className="font-medium text-slate-900">{child.school}</p>
                               </div>
                               <div>
-                                <p className="text-slate-500">Shirt</p>
+                                <p className="text-slate-500">Classroom</p>
+                                <p className="font-medium text-slate-900">{child.classroom || '—'}</p>
+                              </div>
+                              <div>
+                                <p className="text-slate-500">Shirt Size</p>
                                 <p className="font-medium text-slate-900">{child.shirtSize}</p>
                               </div>
+                              <div>
+                                <p className="text-slate-500">Gummy Bears</p>
+                                <p className="font-medium text-slate-900">
+                                  {child.gummyBears ? '✓ Yes' : '✗ No'}
+                                </p>
+                              </div>
                             </div>
-                            <div className="mt-2 flex items-center gap-1 text-sm">
-                              <span>Gummy Bears:</span>
-                              {child.gummyBears ? (
-                                <span className="text-emerald-600">✓ Yes</span>
-                              ) : (
-                                <span className="text-red-600">✗ No</span>
-                              )}
-                            </div>
+                            {child.allergies && (
+                              <div className="mt-2 p-2 bg-red-50 rounded-lg text-sm">
+                                <p className="text-red-600 font-medium">⚠️ Allergies: {child.allergies}</p>
+                              </div>
+                            )}
                           </>
                         )}
                       </div>
